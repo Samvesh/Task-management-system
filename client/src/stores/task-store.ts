@@ -1,4 +1,4 @@
-import { types, Instance, flow } from 'mobx-state-tree';
+import { types, Instance, flow, cast } from 'mobx-state-tree';
 import { api } from '@/lib/api-client';
 
 /**
@@ -57,7 +57,7 @@ export const TaskStore = types
           createdBy: (t.createdBy as string) || '',
           createdAt: (t.createdAt as string) || '',
         }));
-        self.tasks.replace(mapped);
+        self.tasks = cast(mapped);
       } catch (e) {
         self.error = e instanceof Error ? e.message : 'Failed to fetch tasks';
       } finally {
