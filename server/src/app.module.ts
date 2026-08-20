@@ -1,11 +1,10 @@
-import { Module, Logger } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import configuration from './config/configuration';
 import { AuthModule } from './auth/auth.module';
 import { TasksModule } from './tasks/tasks.module';
 import { ProjectsModule } from './projects/projects.module';
-import { mockMongo } from './mock-mongo';
 
 @Module({
   imports: [
@@ -15,20 +14,15 @@ import { mockMongo } from './mock-mongo';
       load: [configuration],
     }),
 
-    // Connect to database with guaranteed local availability
+    // Connect to MongoDB using MONGODB_URI from environment
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => {
-        const logger = new Logger('Database');
-        const localUri = await mockMongo.start();
-        logger.log(`🚀 Database engine connected on ${localUri}`);
-        return {
-          uri: localUri,
-          serverSelectionTimeoutMS: 3000,
-          connectTimeoutMS: 3000,
-        };
-      },
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.get<string>('mongodb.uri'),
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 5000,
+      }),
     }),
 
     // Feature modules
@@ -38,3 +32,4 @@ import { mockMongo } from './mock-mongo';
   ],
 })
 export class AppModule {}
+
